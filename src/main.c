@@ -21,7 +21,8 @@
 #define GRID_OFFSET_X 12
 #define GRID_OFFSET_Y 35
 
-typedef enum {
+typedef enum
+{
     EMPTY_TILE,
     VISITED_TILE,
     PLAYER_TILE,
@@ -30,27 +31,31 @@ typedef enum {
     CLONE_AND_PLAYER_TILE,
 } TileState;
 
-typedef struct {
+typedef struct
+{
     float timer;
     float angle;
     TileState state;
     bool visited;
 } Tile;
 
-typedef struct {
+typedef struct
+{
     int row;
     int column;
 } Position;
 
-typedef enum {
+typedef enum
+{
     UP_DIRECTION,
     DOWN_DIRECTION,
     LEFT_DIRECTION,
     RIGHT_DIRECTION,
 } Direction;
 
-typedef struct {
-    Position *tiles;
+typedef struct
+{
+    Position* tiles;
     TileState value;
     Direction dir;
     Direction next_dir;
@@ -58,30 +63,36 @@ typedef struct {
     bool has_next_next_dir;
 } Snake;
 
-typedef struct {
+typedef struct
+{
     Snake snake;
     size_t player_path_index;
 } SnakeClone;
 
-typedef struct {
+typedef struct
+{
     Position pos;
     TileState value;
 } Food;
 
-typedef struct {
+typedef struct
+{
     Tile tileGrid[ROWS][COLUMNS];
     Snake player;
     Food food;
-    Position *player_path;
-    SnakeClone *clones;
+    Position* player_path;
+    SnakeClone* clones;
 } Game;
 
 Game game;
 
-void InitTileGrid(void) {
-    for (size_t row = 0; row < ROWS; row++) {
-        for (size_t column = 0; column < COLUMNS; column++) {
-            Tile *tile = &game.tileGrid[row][column];
+void InitTileGrid(void)
+{
+    for (size_t row = 0; row < ROWS; row++)
+    {
+        for (size_t column = 0; column < COLUMNS; column++)
+        {
+            Tile* tile = &game.tileGrid[row][column];
             tile->state = EMPTY_TILE;
             tile->angle = 0.0f;
             tile->timer = (row + 1) * (TILE_SIZE + TILE_SPACING) * (column + 1) * (TILE_SIZE + TILE_SPACING);
@@ -90,8 +101,9 @@ void InitTileGrid(void) {
     }
 }
 
-void InitSnake(Snake *snake, const TileState value, const size_t row, const size_t column, const size_t length,
-               bool is_player) {
+void InitSnake(Snake* snake, const TileState value, const size_t row, const size_t column, const size_t length,
+               bool is_player)
+{
     snake->tiles = nullptr;
     snake->value = value;
     snake->dir = RIGHT_DIRECTION;
@@ -101,64 +113,76 @@ void InitSnake(Snake *snake, const TileState value, const size_t row, const size
 
     const auto start_position = (Position){row, column};
 
-    for (size_t i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++)
+    {
         arrpush(snake->tiles, start_position);
     }
 
-    if (is_player) {
+    if (is_player)
+    {
         arrpush(game.player_path, start_position);
     }
 }
 
-void PlaceFoodRandomly(Food *food) {
+void PlaceFoodRandomly(Food* food)
+{
     size_t row, column;
-    do {
+    do
+    {
         row = rand() % ROWS;
         column = rand() % COLUMNS;
-    } while (
+    }
+    while (
         game.tileGrid[row][column].state != EMPTY_TILE &&
         game.tileGrid[row][column].state != VISITED_TILE);
     food->pos.row = row;
     food->pos.column = column;
 }
 
-void InitFood(Food *food) {
+void InitFood(Food* food)
+{
     food->value = FOOD_TILE;
     PlaceFoodRandomly(food);
 }
 
-void InitGame(void) {
+void InitGame(void)
+{
     game.player_path = nullptr;
     InitTileGrid();
     InitSnake(&game.player, PLAYER_TILE, 13, 24, 3, true);
     InitFood(&game.food);
 }
 
-Color GetTileColor(TileState state) {
-    switch (state) {
-        case EMPTY_TILE:
-            return (Color){20, 20, 20, 255};
-        case VISITED_TILE:
-            return (const Color){50, 50, 50, 255};
-        case PLAYER_TILE:
-            return (const Color){255, 255, 255, 255};
-        case FOOD_TILE:
-            return (const Color){40, 255, 40, 255};
-        case CLONE_TILE:
-            return (const Color){255, 40, 40, 255};
-        case CLONE_AND_PLAYER_TILE:
-            return (Color) { 200, 20, 160, 255 };
-        default: return BLACK;
+Color GetTileColor(TileState state)
+{
+    switch (state)
+    {
+    case EMPTY_TILE:
+        return (Color){20, 20, 20, 255};
+    case VISITED_TILE:
+        return (const Color){50, 50, 50, 255};
+    case PLAYER_TILE:
+        return (const Color){255, 255, 255, 255};
+    case FOOD_TILE:
+        return (const Color){40, 255, 40, 255};
+    case CLONE_TILE:
+        return (const Color){255, 40, 40, 255};
+    case CLONE_AND_PLAYER_TILE:
+        return (Color){200, 20, 160, 255};
+    default: return BLACK;
     }
 }
 
-void DrawTileGrid(void) {
-    for (size_t row = 0; row < ROWS; row++) {
-        for (size_t column = 0; column < COLUMNS; column++) {
-            const Tile *tile = &game.tileGrid[row][column];
+void DrawTileGrid(void)
+{
+    for (size_t row = 0; row < ROWS; row++)
+    {
+        for (size_t column = 0; column < COLUMNS; column++)
+        {
+            const Tile* tile = &game.tileGrid[row][column];
 
-            const float drawX = (float) column * (TILE_SIZE + TILE_SPACING) + GRID_OFFSET_X;
-            const float drawY = (float) row * (TILE_SIZE + TILE_SPACING) + GRID_OFFSET_Y;
+            const float drawX = (float)column * (TILE_SIZE + TILE_SPACING) + GRID_OFFSET_X;
+            const float drawY = (float)row * (TILE_SIZE + TILE_SPACING) + GRID_OFFSET_Y;
 
             const auto pos = (Vector2){
                 drawX + TILE_SPACING / 2.0f + (tile->state == EMPTY_TILE ? TILE_SIZE / 4.0f : 0),
@@ -186,10 +210,13 @@ void DrawTileGrid(void) {
     }
 }
 
-void UpdateTileGrid(const float dtm) {
-    for (size_t row = 0; row < ROWS; row++) {
-        for (size_t column = 0; column < COLUMNS; column++) {
-            Tile *tile = &game.tileGrid[row][column];
+void UpdateTileGrid(const float dtm)
+{
+    for (size_t row = 0; row < ROWS; row++)
+    {
+        for (size_t column = 0; column < COLUMNS; column++)
+        {
+            Tile* tile = &game.tileGrid[row][column];
             tile->timer += dtm;
             tile->angle = sinf(tile->timer) * PI;
             tile->state = tile->visited ? VISITED_TILE : EMPTY_TILE;
@@ -197,35 +224,62 @@ void UpdateTileGrid(const float dtm) {
     }
 }
 
-void SnakeMarkTiles(Snake *snake) {
+void SnakeMarkTiles(Snake* snake)
+{
     size_t len = arrlen(snake->tiles);
-    for (size_t i = 0; i < len; i++) {
-        Position *p = &snake->tiles[i];
-        Tile *tile = &game.tileGrid[p->row][p->column];
+    for (size_t i = 0; i < len; i++)
+    {
+        Position* p = &snake->tiles[i];
+        Tile* tile = &game.tileGrid[p->row][p->column];
         tile->visited = true;
 
-        if ((tile->state == PLAYER_TILE && snake->value == CLONE_TILE) || (tile->state == CLONE_TILE && snake->value == PLAYER_TILE)) {
+        if ((tile->state == PLAYER_TILE && snake->value == CLONE_TILE) || (tile->state == CLONE_TILE && snake->value ==
+            PLAYER_TILE))
+        {
             tile->state = CLONE_AND_PLAYER_TILE;
-        } else {
+        }
+        else
+        {
             tile->state = snake->value;
         }
     }
 }
 
-
-void ClonesMarkTiles() {
+void ClonesMarkTiles()
+{
     size_t clones_len = arrlen(game.clones);
-    for (size_t i = 0; i < clones_len; i++) {
+    for (size_t i = 0; i < clones_len; i++)
+    {
         SnakeMarkTiles(&game.clones[i].snake);
     }
 }
 
-void FoodMarkTile(const Food *food) {
-    Tile *tile = &game.tileGrid[food->pos.row][food->pos.column];
+void FoodMarkTile(const Food* food)
+{
+    Tile* tile = &game.tileGrid[food->pos.row][food->pos.column];
     tile->state = food->value;
 }
 
-void SnakeDoStep(Snake *snake) {
+
+void MoveClones()
+{
+    size_t clones_len = arrlen(game.clones);
+    for (size_t i = 0; i < clones_len; i++)
+    {
+        SnakeClone* clone = &game.clones[i];
+        Position next = game.player_path[clone->player_path_index];
+        size_t len = arrlen(clone->snake.tiles);
+        for (size_t j = len - 1; j > 0; j--)
+        {
+            clone->snake.tiles[j] = clone->snake.tiles[j - 1];
+        }
+        clone->snake.tiles[0] = next;
+        clone->player_path_index++;
+    }
+}
+
+void SnakeDoStep(Snake* snake)
+{
     snake->dir = snake->next_dir;
     int dx = 0, dy = 0;
     if (snake->dir == UP_DIRECTION) dy = -1;
@@ -233,74 +287,97 @@ void SnakeDoStep(Snake *snake) {
     else if (snake->dir == RIGHT_DIRECTION) dx = 1;
     else if (snake->dir == LEFT_DIRECTION) dx = -1;
 
-    Position *head = &snake->tiles[0];
+    Position* head = &snake->tiles[0];
     Position new_head = (Position){.row = head->row + dy, .column = head->column + dx};
 
-    if (new_head.row < 0) {
+    if (new_head.row < 0)
+    {
         new_head.row = ROWS - 1;
-    } else if (new_head.row >= ROWS) {
+    }
+    else if (new_head.row >= ROWS)
+    {
         new_head.row = 0;
-    } else if (new_head.column < 0) {
+    }
+    else if (new_head.column < 0)
+    {
         new_head.column = COLUMNS - 1;
-    } else if (new_head.column >= COLUMNS) {
+    }
+    else if (new_head.column >= COLUMNS)
+    {
         new_head.column = 0;
     }
 
     size_t len = arrlen(snake->tiles);
-    for (size_t i = len - 1; i > 0; i--) {
+    for (size_t i = len - 1; i > 0; i--)
+    {
         snake->tiles[i] = snake->tiles[i - 1];
     }
     snake->tiles[0] = new_head;
 
     arrpush(game.player_path, new_head);
 
-    if (snake->has_next_next_dir) {
+    if (snake->has_next_next_dir)
+    {
         snake->next_dir = snake->next_next_dir;
         snake->has_next_next_dir = false;
     }
 }
 
-void SnakeHandleInput(Snake *snake) {
-    if (snake->dir == snake->next_dir) {
-        if (IsKeyPressed(KEY_LEFT) && snake->dir != RIGHT_DIRECTION) {
+void SnakeHandleInput(Snake* snake)
+{
+    if (snake->dir == snake->next_dir)
+    {
+        if (IsKeyPressed(KEY_LEFT) && snake->dir != RIGHT_DIRECTION)
+        {
             snake->next_dir = LEFT_DIRECTION;
         }
-        if (IsKeyPressed(KEY_RIGHT) && snake->dir != LEFT_DIRECTION) {
+        if (IsKeyPressed(KEY_RIGHT) && snake->dir != LEFT_DIRECTION)
+        {
             snake->next_dir = RIGHT_DIRECTION;
         }
-        if (IsKeyPressed(KEY_UP) && snake->dir != DOWN_DIRECTION) {
+        if (IsKeyPressed(KEY_UP) && snake->dir != DOWN_DIRECTION)
+        {
             snake->next_dir = UP_DIRECTION;
         }
-        if (IsKeyPressed(KEY_DOWN) && snake->dir != UP_DIRECTION) {
+        if (IsKeyPressed(KEY_DOWN) && snake->dir != UP_DIRECTION)
+        {
             snake->next_dir = DOWN_DIRECTION;
         }
-    } else {
-        if (IsKeyPressed(KEY_LEFT) && snake->next_dir != RIGHT_DIRECTION) {
+    }
+    else
+    {
+        if (IsKeyPressed(KEY_LEFT) && snake->next_dir != RIGHT_DIRECTION)
+        {
             snake->has_next_next_dir = true;
             snake->next_next_dir = LEFT_DIRECTION;
         }
-        if (IsKeyPressed(KEY_RIGHT) && snake->next_dir != LEFT_DIRECTION) {
+        if (IsKeyPressed(KEY_RIGHT) && snake->next_dir != LEFT_DIRECTION)
+        {
             snake->has_next_next_dir = true;
             snake->next_next_dir = RIGHT_DIRECTION;
         }
-        if (IsKeyPressed(KEY_UP) && snake->next_dir != DOWN_DIRECTION) {
+        if (IsKeyPressed(KEY_UP) && snake->next_dir != DOWN_DIRECTION)
+        {
             snake->has_next_next_dir = true;
             snake->next_next_dir = UP_DIRECTION;
         }
-        if (IsKeyPressed(KEY_DOWN) && snake->next_dir != UP_DIRECTION) {
+        if (IsKeyPressed(KEY_DOWN) && snake->next_dir != UP_DIRECTION)
+        {
             snake->has_next_next_dir = true;
             snake->next_next_dir = DOWN_DIRECTION;
         }
     }
 }
 
-void SnakeGrow(Snake *snake) {
+void SnakeGrow(Snake* snake)
+{
     size_t len = arrlen(snake->tiles);
     Position last = snake->tiles[len - 1];
     arrpush(snake->tiles, last);
 }
 
-void SpawnClone(Snake *player) {
+void SpawnClone(Snake* player)
+{
     Snake snake;
     size_t row = game.player_path[0].row;
     size_t column = game.player_path[0].column;
@@ -310,7 +387,8 @@ void SpawnClone(Snake *player) {
     arrpush(game.clones, clone);
 }
 
-int main(void) {
+int main(void)
+{
     srand(time(nullptr));
     InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT, "Snake Rewind");
     SetTargetFPS(60);
@@ -321,17 +399,21 @@ int main(void) {
 
     bool foodWasEaten = false;
     float stepTimer = 0.0f;
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose())
+    {
         const float dt = GetFrameTime();
         stepTimer += dt;
 
         SnakeHandleInput(&game.player);
         UpdateTileGrid(dt);
 
-        if (stepTimer >= STEP_INTERVAL) {
+        if (stepTimer >= STEP_INTERVAL)
+        {
+            MoveClones();
             SnakeDoStep(&game.player);
-            Position *head = &game.player.tiles[0];
-            if (head->row == game.food.pos.row && head->column == game.food.pos.column) {
+            Position* head = &game.player.tiles[0];
+            if (head->row == game.food.pos.row && head->column == game.food.pos.column)
+            {
                 SpawnClone(&game.player);
                 SnakeGrow(&game.player);
                 foodWasEaten = true;
@@ -341,7 +423,8 @@ int main(void) {
 
         SnakeMarkTiles(&game.player);
         ClonesMarkTiles();
-        if (foodWasEaten) {
+        if (foodWasEaten)
+        {
             foodWasEaten = false;
             PlaceFoodRandomly(&game.food);
         }
