@@ -169,7 +169,7 @@ Color GetTileColor(TileState state)
         return (const Color){255, 40, 40, 255};
     case CLONE_AND_PLAYER_TILE:
         return (Color){200, 20, 160, 255};
-    default: return BLACK;
+    default: return (Color){50, 50, 50, 255};
     }
 }
 
@@ -259,7 +259,6 @@ void FoodMarkTile(const Food* food)
     Tile* tile = &game.tileGrid[food->pos.row][food->pos.column];
     tile->state = food->value;
 }
-
 
 void MoveClones()
 {
