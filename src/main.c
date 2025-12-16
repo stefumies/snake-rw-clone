@@ -232,13 +232,20 @@ void FoodMarkTile(const Food *food) {
 
 void MoveClones() {
     const size_t clones_len = arrlen(game.clones);
+    const size_t player_path_len = arrlen(game.player_path);
     for (size_t i = 0; i < clones_len; i++) {
         SnakeClone *clone = &game.clones[i];
+
+       if (clone->player_path_index >= player_path_len) {
+           continue;
+       }
+
         const Position next = game.player_path[clone->player_path_index];
         const size_t len = arrlen(clone->snake.tiles);
         for (size_t j = len - 1; j > 0; j--) {
             clone->snake.tiles[j] = clone->snake.tiles[j - 1];
         }
+
         clone->snake.tiles[0] = next;
         clone->player_path_index++;
     }
