@@ -70,6 +70,7 @@ typedef struct {
 } Food;
 
 typedef struct {
+    bool game_over;
     Tile tileGrid[ROWS][COLUMNS];
     Snake player;
     Food food;
@@ -131,6 +132,8 @@ void InitFood(Food *food) {
 
 void InitGame(void) {
     game.player_path = nullptr;
+    game.clones = nullptr;
+    game.game_over = false;
     InitTileGrid();
     InitSnake(&game.player, PLAYER_TILE, 13, 24, 3, true);
     InitFood(&game.food);
@@ -328,13 +331,36 @@ void SpawnClone(const Snake *player) {
 
 void ReduceClones(void) {
     int const clones_len = arrlen(game.clones);
-    for (int i = clones_len-1; i >= 0; i--) {
+    for (int i = clones_len - 1; i >= 0; i--) {
         const SnakeClone *clone = &game.clones[i];
         arrpop(clone->snake.tiles);
         if (arrlen(clone->snake.tiles) == 0) {
             arrdelswap(game.clones, i);
         }
     }
+}
+
+bool CheckForCollisions(const Snake *player) {
+    const Position *head = &player->tiles[0];
+    size_t len = arrlen(player->tiles);
+    for (size_t i = 1; i < len; i++) {
+        const Position *p = &player->tiles[i];
+        if (p->row == head->row && p->column == head->column) {
+            return true;
+        }
+    }
+    const size_t clones_len = arrlen(game.clones);
+    for (size_t i = 0; i < clones_len; i++) {
+        const SnakeClone *clone = &game.clones[i];
+        len = arrlen(clone->snake.tiles);
+        for (size_t j = 0; j < len; j++) {
+            const Position *p = &clone->snake.tiles[j];
+            if (p->row == head->row && p->column == head->column) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 int main(void) {
@@ -357,16 +383,19 @@ int main(void) {
 
         if (stepTimer >= STEP_INTERVAL) {
             MoveClones();
-            SnakeDoStep(&game.player);
 
-            Position *head = &game.player.tiles[0];
-            if (head->row == game.food.pos.row && head->column == game.food.pos.column) {
-                ReduceClones();
-                SpawnClone(&game.player);
-                SnakeGrow(&game.player);
-                foodWasEaten = true;
+            if (!game.game_over) {
+                SnakeDoStep(&game.player);
+
+                const Position *head = &game.player.tiles[0];
+                if (head->row == game.food.pos.row && head->column == game.food.pos.column) {
+                    ReduceClones();
+                    SpawnClone(&game.player);
+                    SnakeGrow(&game.player);
+                    foodWasEaten = true;
+                }
+                game.game_over = CheckForCollisions(&game.player);
             }
-
             stepTimer = 0.0f;
         }
 
