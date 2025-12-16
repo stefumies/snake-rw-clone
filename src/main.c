@@ -209,8 +209,11 @@ void SnakeMarkTiles(const Snake *snake) {
         Tile *tile = &game.tileGrid[p->row][p->column];
         tile->visited = true;
 
-        if ((tile->state == PLAYER_TILE && snake->value == CLONE_TILE)
-            || (tile->state == CLONE_TILE && snake->value == PLAYER_TILE)) {
+        bool is_player_tile = tile->state == PLAYER_TILE || tile->state == CLONE_AND_PLAYER_TILE;
+        bool is_clone_tile = tile->state == CLONE_TILE || tile->state == CLONE_AND_PLAYER_TILE;
+
+        if ((is_player_tile && snake->value == CLONE_TILE)
+            || (is_clone_tile && snake->value == PLAYER_TILE)) {
             tile->state = CLONE_AND_PLAYER_TILE;
         } else {
             tile->state = snake->value;
@@ -236,9 +239,9 @@ void MoveClones() {
     for (size_t i = 0; i < clones_len; i++) {
         SnakeClone *clone = &game.clones[i];
 
-       if (clone->player_path_index >= player_path_len) {
-           continue;
-       }
+        if (clone->player_path_index >= player_path_len) {
+            continue;
+        }
 
         const Position next = game.player_path[clone->player_path_index];
         const size_t len = arrlen(clone->snake.tiles);
